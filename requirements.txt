@@ -2,7 +2,7 @@ streamlit
 python-dotenv
 langchain
 langchain-openai
-langgraph
+langgraph>=0.2.0
 langchain-tavily
 pillow
 requests
