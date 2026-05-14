@@ -10,6 +10,7 @@ import requests
 from langchain.chat_models import init_chat_model
 from langchain_tavily import TavilySearch
 from langgraph.prebuilt import create_react_agent
+import time
 
 # ====================== 页面配置 ======================
 st.set_page_config(
@@ -68,16 +69,24 @@ def recognize_image(image):
                 }
             ]
         }
-        resp = requests.post(url, json=data, headers=headers, timeout=20)
-        resp.raise_for_status()
+        # 延长超时+增加重试
+        for attempt in range(2):
+            try:
+                resp = requests.post(url, json=data, headers=headers, timeout=60)
+                resp.raise_for_status()
+                break
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError):
+                if attempt == 1:
+                    raise
+                time.sleep(2)
         result = resp.json()
 
         if "choices" in result and len(result["choices"]) > 0:
             return result["choices"][0]["message"]["content"]
         else:
-            return f"图片识别失败，接口返回异常：{result}"
+            return "图片识别失败，接口返回异常"
     except Exception as e:
-        return f"图片识别出错：{str(e)}"
+        return ""
 
 # ====================== 聊天历史（核心：用session_state存储完整对话）======================
 if "messages" not in st.session_state:
@@ -114,6 +123,8 @@ if user_input or uploaded_file:
             image_desc = recognize_image(image)
             if image_desc:
                 st.info(f"图片识别结果：{image_desc}")
+            else:
+                st.warning("图片识别超时，将忽略图片内容继续对话")
 
     # 构造当前用户消息
     current_user_msg = ""
