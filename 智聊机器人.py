@@ -17,7 +17,7 @@ st.set_page_config(
     page_icon="🤖",
     layout="wide"
 )
-st.title("🤖 智聊机器人 - 支持图片上传")
+st.title("🤖 智聊机器人 ")
 
 # ====================== 初始化模型 & 工具 ======================
 model = init_chat_model(
